@@ -2,7 +2,9 @@ package com.web.crawler.service;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -32,39 +34,52 @@ public class WebCrawlerServiceImpl implements WebCrawlerService {
 	@SneakyThrows
 	@Override
 	public Mono<SiteMap> getSiteMap(String webURL, boolean fetchParallel) {
-		SiteMap siteMap = new SiteMap(new Link("Home", LinkType.URL, webURL));
+		SiteMap siteMap = new SiteMap(new Link("Home", LinkType.URL, webURL, true));
 		Map<String, Link> visitedLinks = new ConcurrentHashMap<>();
+		Set<String> linksToBeVisited = new CopyOnWriteArraySet<>();
 		String domain = new URI(webURL).getHost();
 		long time = System.currentTimeMillis();
-		setLinksFromHTMLContent(siteMap.getHome(), domain, webURL, visitedLinks, fetchParallel);
+		setLinksFromHTMLContent(siteMap.getHome(), domain, webURL, visitedLinks,linksToBeVisited, fetchParallel);
 		log.info("Time taken (secs) : " + (System.currentTimeMillis() - time) / 1000);
+		log.info(linksToBeVisited);
 		return Mono.just(siteMap);
 	}
 
 	@SneakyThrows
 	private void setLinksFromHTMLContent(Link home, String domain, String url, Map<String, Link> visitedLinks,
+			Set<String> linksToBeVisited,
 			boolean fetchParallel) {
-		visitedLinks.put(url, home);
+		//visitedLinks.put(url, home);
+		if(!home.getCanFetchContent()) {
+			return;
+		}
 		Document document = Jsoup.connect(url).get();
-		setDocumentInformation(document, home);
+		//setDocumentInformation(document, home);
 		String linksQuery = "a[href*=##domain##]".replaceAll(DOMAIN, domain);
 		Elements linkElements = document.select(linksQuery);
 		linkElements.stream().filter(element -> {
 			String absURL = element.absUrl("href");
 			String name = element.text();
 			boolean isSameDomain = absURL.startsWith(domain, 7) || absURL.startsWith(domain, 8);
-			return isSameDomain && StringUtils.isNotEmpty(name) && visitedLinks.get(absURL) == null;
+			return isSameDomain && StringUtils.isNotEmpty(name); //&& visitedLinks.get(absURL) == null;
 		}).forEach(element -> {
-			Link subLink = new Link(element.text(), LinkType.URL, element.absUrl("href"));
+			String absURL = element.absUrl("href");
+			Link subLink;
+			if (!linksToBeVisited.contains(absURL)) {
+				linksToBeVisited.add(absURL);
+				subLink = new Link(element.text(), LinkType.URL, element.absUrl("href"), true);
+			} else {
+				subLink = new Link(element.text(), LinkType.URL, element.absUrl("href"), false);
+			}
 			home.getSubDomainLinks().add(subLink);
 		});
 		if (fetchParallel) {
 			home.getSubDomainLinks().parallelStream().forEach(subLink -> {
-				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), visitedLinks, true);
+				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), visitedLinks, linksToBeVisited, true);
 			});
 		} else {
 			home.getSubDomainLinks().stream().forEach(subLink -> {
-				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), visitedLinks, false);
+				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), visitedLinks, linksToBeVisited, false);
 			});
 		}
 	}

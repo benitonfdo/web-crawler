@@ -39,11 +39,11 @@ public class WebCrawlerControllerTest {
 	void getSiteMap() {
 		String webURL = "someurl";
 		
-		SiteMap siteMap = new SiteMap(new Link("Home", LinkType.URL, webURL));
-		Link link1 = new Link("Link name1", LinkType.MEDIA, "url");
-		Link link2 = new Link("Link name2", LinkType.URL, "url");
-		Link link3 = new Link("Link name3", LinkType.IMPORTS, "url");
-		Link link4 = new Link("Link name4", LinkType.MEDIA, "url");
+		SiteMap siteMap = new SiteMap(new Link("Home", LinkType.URL, webURL, true));
+		Link link1 = new Link("Link name1", LinkType.URL, "url",true);
+		Link link2 = new Link("Link name2", LinkType.URL, "url",true);
+		Link link3 = new Link("Link name3", LinkType.URL, "url",true);
+		Link link4 = new Link("Link name4", LinkType.URL, "url",false);
 		link2.getSubDomainLinks().add(link4);
 
 		siteMap.getHome().getSubDomainLinks().add(link1);
