@@ -54,7 +54,7 @@ public class WebCrawlerServiceImpl implements WebCrawlerService {
 			return;
 		}
 		Document document = Jsoup.connect(url).get();
-		//setDocumentInformation(document, home);
+		setDocumentInformation(document, home);
 		String linksQuery = "a[href*=##domain##]".replaceAll(DOMAIN, domain);
 		Elements linkElements = document.select(linksQuery);
 		linkElements.stream().filter(element -> {
