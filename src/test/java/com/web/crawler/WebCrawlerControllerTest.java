@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import com.web.crawler.model.Link;
-import com.web.crawler.model.LinkType;
 import com.web.crawler.model.SiteMap;
 import com.web.crawler.service.WebCrawlerService;
 
@@ -38,12 +37,12 @@ public class WebCrawlerControllerTest {
 	@Test
 	void getSiteMap() {
 		String webURL = "someurl";
-		
-		SiteMap siteMap = new SiteMap(new Link("Home", LinkType.URL, webURL, true));
-		Link link1 = new Link("Link name1", LinkType.URL, "url",true);
-		Link link2 = new Link("Link name2", LinkType.URL, "url",true);
-		Link link3 = new Link("Link name3", LinkType.URL, "url",true);
-		Link link4 = new Link("Link name4", LinkType.URL, "url",false);
+
+		SiteMap siteMap = new SiteMap(new Link("Home", webURL, true));
+		Link link1 = new Link("Link name1", "url", true);
+		Link link2 = new Link("Link name2", "url", true);
+		Link link3 = new Link("Link name3", "url", true);
+		Link link4 = new Link("Link name4", "url", false);
 		link2.getSubDomainLinks().add(link4);
 
 		siteMap.getHome().getSubDomainLinks().add(link1);
@@ -52,8 +51,9 @@ public class WebCrawlerControllerTest {
 
 		when(webCrawlerService.getSiteMap(webURL, true)).thenReturn(Mono.just(siteMap));
 
-		ResultActions result = mockMvc.perform(MockMvcRequestBuilders.get("/sitemap?url=someurl").contentType(MediaType.APPLICATION_JSON_VALUE));
-		
+		ResultActions result = mockMvc.perform(
+				MockMvcRequestBuilders.get("/sitemap?url=someurl").contentType(MediaType.APPLICATION_JSON_VALUE));
+
 		result.andExpect(jsonPath("$.home.links", hasSize(3))).andDo(print());
 	}
 

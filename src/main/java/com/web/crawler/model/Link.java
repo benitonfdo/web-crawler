@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 public class Link {
 
 	private String name;
-	private LinkType linkType;
 	private String url;
 	
 	@JsonIgnore
