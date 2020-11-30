@@ -10,4 +10,13 @@ import lombok.NoArgsConstructor;
 public class SiteMap {
 	
 	private Link home;
+	
+	private Integer timeTakenInSecs;
+
+	public SiteMap(Link home) {
+		super();
+		this.home = home;
+	}
+	
+	
 }

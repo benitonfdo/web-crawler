@@ -40,7 +40,9 @@ public class WebCrawlerServiceImpl implements WebCrawlerService {
 		String domain = new URI(webURL).getHost();
 		long time = System.currentTimeMillis();
 		setLinksFromHTMLContent(siteMap.getHome(), domain, webURL, visitedLinks,linksToBeVisited, fetchParallel);
-		log.info("Time taken (secs) : " + (System.currentTimeMillis() - time) / 1000);
+		Long timeTaken = (System.currentTimeMillis() - time) / 1000;
+		siteMap.setTimeTakenInSecs(timeTaken.intValue());
+		log.info("Time taken (secs) : " + timeTaken);
 		log.info(linksToBeVisited);
 		return Mono.just(siteMap);
 	}
