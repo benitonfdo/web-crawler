@@ -68,10 +68,9 @@ public class WebCrawlerServiceImpl implements WebCrawlerService {
 			if (!linksToBeVisited.contains(absURL)) {
 				linksToBeVisited.add(absURL);
 				subLink = new Link(element.text(), LinkType.URL, element.absUrl("href"), true);
-			} else {
-				subLink = new Link(element.text(), LinkType.URL, element.absUrl("href"), false);
-			}
-			home.getSubDomainLinks().add(subLink);
+				home.getSubDomainLinks().add(subLink);
+			} 
+			
 		});
 		if (fetchParallel) {
 			home.getSubDomainLinks().parallelStream().forEach(subLink -> {
