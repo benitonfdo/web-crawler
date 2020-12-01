@@ -3,8 +3,6 @@ package com.web.crawler.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,9 +15,6 @@ public class Link {
 
 	private String name;
 	private String url;
-	
-	@JsonIgnore
-	private Boolean canFetchContent;
 	
 	@EqualsAndHashCode.Exclude
 	private final Set<Link> subDomainLinks = new HashSet<>();

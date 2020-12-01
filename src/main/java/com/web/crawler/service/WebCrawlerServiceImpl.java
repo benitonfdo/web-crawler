@@ -20,24 +20,27 @@ import lombok.SneakyThrows;
 public class WebCrawlerServiceImpl implements WebCrawlerService {
 
 	private static final String DOMAIN = "##domain##";
+	
+	private static final String LINKS_BASED_ON_DOMAIN = "a[href*=##domain##]";
+	
+	private static final String HREF = "href";
+	
+	private static final String SRC = "src";
+	
+	private static final String LINKS_QUERY = "a[href]";
+	
+	private static final String MEDIA_QUERY = "[src]";
+	
+	private static final String IMPORTS_QUERY = "link[href]";
 
 	@SneakyThrows
 	@Override
-	public SiteMap getSiteMap(String webURL, boolean fetchParallel, boolean accumulateCommonLinks) {
-		SiteMap siteMap = new SiteMap(new Link("Home", webURL, true));
-		if (accumulateCommonLinks) {
-			siteMap.setCommonLinks(new CopyOnWriteArraySet<>());
-		}
-		Set<String> linksToBeVisited;
-		if (fetchParallel) {
-			linksToBeVisited = new CopyOnWriteArraySet<>();
-		} else {
-			linksToBeVisited = new HashSet<>();
-		}
+	public SiteMap getSiteMap(String webURL, boolean fetchParallel) {
+		SiteMap siteMap = new SiteMap(new Link("Home", webURL));
+		Set<String> linksToBeVisited = (fetchParallel) ? new CopyOnWriteArraySet<>() :new HashSet<>() ;
 		String domain = new URI(webURL).getHost();
 		long time = System.currentTimeMillis();
-		setLinksFromHTMLContent(siteMap.getHome(), domain, webURL, linksToBeVisited, fetchParallel,
-				siteMap.getCommonLinks());
+		setLinksFromHTMLContent(siteMap.getHome(), domain, webURL, linksToBeVisited, fetchParallel);
 		Long timeTaken = (System.currentTimeMillis() - time) / 1000;
 		siteMap.setTimeTakenInSecs(timeTaken.intValue());
 		return siteMap;
@@ -45,61 +48,49 @@ public class WebCrawlerServiceImpl implements WebCrawlerService {
 
 	@SneakyThrows
 	private void setLinksFromHTMLContent(Link home, String domain, String url, Set<String> linksToBeVisited,
-			boolean fetchParallel, Set<String> commonLinks) {
-		if (!home.getCanFetchContent()) {
-			return;
-		}
+			boolean fetchParallel) {
 		Document document = Jsoup.connect(url).get();
-		setDocumentInformation(document, home, commonLinks);
-		String linksQuery = "a[href*=##domain##]".replaceAll(DOMAIN, domain);
+		setDocumentInformation(document, home);
+		String linksQuery = LINKS_BASED_ON_DOMAIN.replaceAll(DOMAIN, domain);
 		Elements linkElements = document.select(linksQuery);
 		linkElements.stream().filter(element -> {
-			String absURL = element.absUrl("href");
+			String absURL = element.absUrl(HREF);
 			String name = element.text();
 			boolean isSameDomain = absURL.startsWith(domain, 7) || absURL.startsWith(domain, 8);
 			return isSameDomain && StringUtils.isNotEmpty(name);
 		}).forEach(element -> {
-			String absURL = element.absUrl("href");
+			String absURL = element.absUrl(HREF);
 			Link subLink;
 			if (!linksToBeVisited.contains(absURL)) {
 				linksToBeVisited.add(absURL);
-				subLink = new Link(element.text(), element.absUrl("href"), true);
+				subLink = new Link(element.text(), element.absUrl(HREF));
 				home.getSubDomainLinks().add(subLink);
 			}
 		});
 		if (fetchParallel) {
 			home.getSubDomainLinks().parallelStream().forEach(subLink -> {
-				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), linksToBeVisited, true, commonLinks);
+				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), linksToBeVisited, true);
 			});
 		} else {
 			home.getSubDomainLinks().stream().forEach(subLink -> {
-				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), linksToBeVisited, false, commonLinks);
+				setLinksFromHTMLContent(subLink, domain, subLink.getUrl(), linksToBeVisited, false);
 			});
 		}
 	}
 
-	private void setDocumentInformation(Document document, Link link, Set<String> commonLinks) {
-		Elements links = document.select("a[href]");
-		Elements media = document.select("[src]");
-		Elements imports = document.select("link[href]");
+	private void setDocumentInformation(Document document, Link link) {
+		Elements links = document.select(LINKS_QUERY);
+		Elements media = document.select(MEDIA_QUERY);
+		Elements imports = document.select(IMPORTS_QUERY);
 		links.stream().forEach(linkElement -> {
-			link.getLinks().add(linkElement.absUrl("href"));
+			link.getLinks().add(linkElement.absUrl(HREF));
 		});
-		if(commonLinks!=null) {
-			media.stream().forEach(mediaElement -> {
-				commonLinks.add(mediaElement.absUrl("src"));
-			});
-			imports.stream().forEach(importElement -> {
-				commonLinks.add(importElement.absUrl("href"));
-			});
-		} else {
-			media.stream().forEach(mediaElement -> {
-				link.getMedia().add(mediaElement.absUrl("src"));
-			});
-			imports.stream().forEach(importElement -> {
-				link.getImports().add(importElement.absUrl("href"));
-			});
-		}
+		media.stream().forEach(mediaElement -> {
+			link.getMedia().add(mediaElement.absUrl(SRC));
+		});
+		imports.stream().forEach(importElement -> {
+			link.getImports().add(importElement.absUrl(HREF));
+		});
 	}
 
 }

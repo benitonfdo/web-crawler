@@ -16,15 +16,13 @@ public class WebCrawlerController {
 	WebCrawlerService webCrawlerService;
 
 	@GetMapping(path = "sitemap", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> getSiteMap(@RequestParam String url,
-			@RequestParam(required = false) boolean accumulateCommonLinks) {
-		return ResponseEntity.ok(webCrawlerService.getSiteMap(url, false, accumulateCommonLinks));
+	public ResponseEntity<?> getSiteMap(@RequestParam String url) {
+		return ResponseEntity.ok(webCrawlerService.getSiteMap(url, false));
 	}
 
 	@GetMapping(path = "sitemap/parallel/fetch", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<?> getSiteMapFetchParallel(@RequestParam String url,
-			@RequestParam(required = false) boolean accumulateCommonLinks) {
-		return ResponseEntity.ok(webCrawlerService.getSiteMap(url, true, accumulateCommonLinks));
+	public ResponseEntity<?> getSiteMapFetchParallel(@RequestParam String url) {
+		return ResponseEntity.ok(webCrawlerService.getSiteMap(url, true));
 	}
 
 }
