@@ -15,10 +15,8 @@ public class SiteMapPojoTest {
 	@Test
 	public void create() throws Exception {
 
-		Assertions.assertEquals(this.siteMap.getCommonLinks(), null);
 		Assertions.assertEquals(this.siteMap.getTimeTakenInSecs(),null);
 		Assertions.assertEquals(this.siteMap.getHome(), null);
-		
 		Assertions.assertEquals(this.siteMapWithLink.getHome(), link);
 
 	}
