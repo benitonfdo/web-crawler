@@ -21,7 +21,6 @@ import com.web.crawler.model.SiteMap;
 import com.web.crawler.service.WebCrawlerService;
 
 import lombok.SneakyThrows;
-import reactor.core.publisher.Mono;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest
@@ -49,7 +48,7 @@ public class WebCrawlerControllerTest {
 		siteMap.getHome().getSubDomainLinks().add(link2);
 		siteMap.getHome().getSubDomainLinks().add(link3);
 
-		when(webCrawlerService.getSiteMap(webURL, true)).thenReturn(Mono.just(siteMap));
+		when(webCrawlerService.getSiteMap(webURL, true, false)).thenReturn(siteMap);
 
 		ResultActions result = mockMvc.perform(
 				MockMvcRequestBuilders.get("/sitemap?url=someurl").contentType(MediaType.APPLICATION_JSON_VALUE));
