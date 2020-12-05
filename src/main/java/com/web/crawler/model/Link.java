@@ -2,6 +2,7 @@ package com.web.crawler.model;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class Link {
 	private String url;
 	
 	@EqualsAndHashCode.Exclude
-	private final Set<Link> subDomainLinks = new HashSet<>();
+	private final Set<Link> subDomainLinks = new CopyOnWriteArraySet<>();
 	
 	@EqualsAndHashCode.Exclude
 	private final Set<String> links = new HashSet<>();
